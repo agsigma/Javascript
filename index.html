@@ -22,13 +22,15 @@
     <!-- Form to get user input -->
     <form id="dino-compare">
         <div class="form-container">
-            <p>Name:</p>
-            <input id="name" class="form-field__full" type="name" name="name">
+            <p>Name:</p>            
+            <input id="name" class="form-field__full" type="name" name="name" required>
+            <p>Location:</p>
+            <input id="where" class="form-field__full" type="text" name="where" required pattern="[A-Za-z]{3,10000}">
             <p>Height</p>
-            <label>Feet: <input id="feet" class="form-field__short" type="number" name="feet"></label>
-            <label>inches: <input id="inches" class="form-field__short" type="number" name="inches"></label>
+            <label>Feet: <input id="feet" class="form-field__short" type="number" name="feet" value="6"></label>
+            <label>inches: <input id="inches" class="form-field__short" type="number" name="inches" value="0"></label>
             <p>Weight:</p>
-            <label><input id="weight" class="form-field__full" type="number" name="weight">lbs</label>
+            <label><input id="weight" class="form-field__full" type="number" name="weight" value="200">lbs</label>
             <p>Diet:</p>
             <select id="diet" class="form-field__full" name="diet">
                 <option>Herbavor</option>

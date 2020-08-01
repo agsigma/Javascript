@@ -195,7 +195,7 @@ select {
     font-size: 0.7em;
 }
 
-
-.hidden {
+/* #grid added to increase selector specifity to avoid using important */
+.hidden, #grid.hidden {
     display: none;
 }

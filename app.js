@@ -1,4 +1,6 @@
 "use strict";
+
+// Singleton utility object
 const Utilities = {
     // in place schuffling
     randomShuffle: array => {
@@ -22,8 +24,7 @@ const Utilities = {
     }
 }
 
-
-// Create Dino Constructor
+// Class
 const Animal = function() {
     this.onChangeCallbacks = [];
 }
@@ -43,12 +44,50 @@ Animal.prototype = {
             fun.call(this, this);
         });
     },
+    // callbacks wire together model with controller and let us refresh view only when model changed
     addCallback: function(fun) {
         this.onChangeCallbacks.push(fun);
+    },
+    getRandomFact: function(animal) {
+        var facts = [this.getFact()];
+        if (Animal.weightComperator(this, animal) >= 0) {
+            facts.push(`You are not heavier than ${this.getName()}`);
+        } else {
+            facts.push(`You are heavier than ${this.getName()}`);
+        }
+        if (Animal.heightComperator(this, animal) >= 0) {
+            facts.push(`You are not taller than ${this.getName()}`);
+        } else {
+            facts.push(`You are taller than ${this.getName()}`);
+        }
+        if (Animal.dietComperator(this, animal) !== 0) {
+            facts.push(`You diet is different than that of ${this.getName()}`);
+        } else {
+            facts.push(`You have the same diet as ${this.getName()}`);
+        }
+        if (Animal.locationComperator(this, animal)) {
+            facts.push(`You live in the same place as ${this.getName()}`);
+        }
+        return facts[Math.floor(Math.random()*facts.length)];
     }
 };
+Animal.DIET_ENUM = {
+    herbavor: 1,
+    omnivor: 2,
+    carnivor: 3
+};
+Animal.weightComperator = (animal1, animal2) => animal1.weight - animal2.weight;
+Animal.heightComperator = (animal1, animal2) => animal1.height - animal2.height;
+Animal.dietComperator = (animal1, animal2) => Animal.DIET_ENUM[animal1.diet.toLowerCase()] - Animal.DIET_ENUM[animal2.diet.toLowerCase()];
+// We want to be able to proccess substring of location like in situation
+// when one animal lives in "Asia" and the other in "North America, Asia, Europe"
+Animal.locationComperator = (animal1, animal2) => {
+    return animal1.where.toLowerCase().includes(animal2.where.toLowerCase()) ||
+        animal2.where.toLowerCase().includes(animal1.where.toLowerCase());
+};
 
-const Human = function({name = "Sigma"} = {}) {
+// Class
+const Human = function({name = ''} = {}) {
     Animal.call(this);
     this.name = name;
 }
@@ -61,13 +100,17 @@ Human.prototype = Object.assign(Object.create(Animal.prototype), {
     },
     getHeight: function() {
         return `${this.feet || 0} feet, ${this.inches || 0} inches`;
+    },
+    getRandomFact: function() {
+        return `That's you`;
     }
 });
 Human.prototype.constructor = Human;
 
-const Dino = function({...imVeryLazy} = {}) {
+// Class
+const Dino = function({...rawDinoObject} = {}) {
     Animal.call(this);
-    Object.assign(this, imVeryLazy);
+    Object.assign(this, rawDinoObject);
 }
 Dino.prototype = Object.assign(Object.create(Animal.prototype), {
     getName: function() {
@@ -82,19 +125,33 @@ Dino.prototype = Object.assign(Object.create(Animal.prototype), {
 });
 Dino.prototype.constructor = Dino;
 
+// Class
+const Pigeon = function({...rawPigeonObject} = {}) {
+    Dino.call(this, rawPigeonObject);
+}
+Pigeon.prototype = Object.assign(Object.create(Dino.prototype), {
+    getRandomFact: function() {
+        return this.getFact();
+    }
+});
+Pigeon.prototype.constructor = Pigeon;
 
-const AnimalController = function(animalModel) {
-    this.model = animalModel;    
+
+
+// Class
+const AnimalController = function(animalModel, humanModel) {
+    this.model = animalModel;
     this.$el = document.createElement('div');
+    this.humanModel = humanModel;
     this.render();
 }
 AnimalController.prototype = {
-    render: function() {        
+    render: function() {
         this.$el.classList.add('grid-item');
-        this.$el.innerHTML = `        
+        this.$el.innerHTML = `
             <h3>${this.model.getName()}</h3>
             <img src="${this.model.getImg()}" alt="${this.model.getName()}">
-            <p>${this.model.getFact()}</p>
+            <p>${this.model.getRandomFact(this.humanModel)}</p>
             <div class="overlay">
                 Weight: ${this.model.weight} lbs.<br>
                 Height: ${this.model.getHeight()}
@@ -103,8 +160,10 @@ AnimalController.prototype = {
     }
 };
 
+// Class created with assumption to have only one instancion, could as well be rewritten as singleton
 const FormController = function() {
     this.$el = document.querySelector('#dino-compare');
+    this.$grid = document.querySelector('#grid');
 
     this.collectValues = function() {
         // helper function
@@ -116,13 +175,15 @@ const FormController = function() {
         const inches = Number(getVal('#inches'));
         const weight = Number(getVal('#weight'));
         const diet = getVal('#diet');
+        const where = getVal('#where');
         const result = {
             name,
             feet,
             inches,
-            height: `${feet || 0} feet, ${inches || 0} inches`,
+            height: feet + inches/12.0,
             weight,
-            diet
+            diet,
+            where
         };
         return result;
     };
@@ -130,10 +191,12 @@ const FormController = function() {
     this.hide = function() {
         this.$el.querySelector('.form-container').classList.add('hidden');
         this.$el.querySelector('.toggler').classList.remove('hidden');
+        this.$grid.classList.remove('hidden');
     };
     this.show = function() {
         this.$el.querySelector('.form-container').classList.remove('hidden');
         this.$el.querySelector('.toggler').classList.add('hidden');
+        this.$grid.classList.add('hidden');
     };
 };
 
@@ -152,16 +215,22 @@ dataPromise.then((data) => {
 
     const formController = new FormController('#dino-compare');
 
-    const dinos = data['Dinos'].map(dino => new Dino(dino));    
+    const dinos = data['Dinos'].map(dino => dino.species === "Pigeon" ? new Pigeon(dino) : new Dino(dino));
+    // I decided to use shuffle on dinos array to get more intresting infographics
     Utilities.randomShuffle(dinos);
 
-    const human = new Human({name: 'Trololo'});
+    // human object is created before form initialization so we can set name of our choosing
+    // when grid will be created this name will be substituted by name from the form
+    const human = new Human({name: 'default'});
 
     const animals = dinos.slice(0,4).concat([human]).concat(dinos.slice(4, 10000));
 
+    const controllers = [];
+
     const initGrid = Utilities.once(function() {
         animals.forEach(model => {
-            const controller = new AnimalController(model);        
+            const controller = new AnimalController(model, human);
+            controllers.push(controller);
             model.addCallback(model => {
                 controller.render();
             });
@@ -169,12 +238,17 @@ dataPromise.then((data) => {
         });
     });
 
+    const renderGrid = function() {
+        controllers.forEach(controller => controller.render());
+    }
+
     formController.$el.addEventListener('submit', event => {
         const humanValues = formController.collectValues();
-        for (const [property, value] of Object.entries(humanValues)) {            
-            human.setProperty(property, value);            
+        for (const [property, value] of Object.entries(humanValues)) {
+            human.setProperty(property, value);
         }
         initGrid();
+        renderGrid();
         formController.hide();
         event.preventDefault();
     });
@@ -185,16 +259,3 @@ dataPromise.then((data) => {
 }).catch((err) => {
     console.error('Error occured during app initialization.', err);
 });
-
-
-// I don't understand why I should write comparision functions because there is no need for them in the application, 
-// but maybe I missed something from app description. Nevertheless for the sake of assigment here they are(as static methods):
-// usage: array.sort(Animal.weightComperator)
-Animal.DIET_ENUM = {
-    herbavor: 1,
-    omnivor: 2,
-    carnivor: 3
-};
-Animal.weightComperator = (animal1, animal2) => animal1.weight - animal2.weight;
-Animal.heightComperator = (animal1, animal2) => (animal1.feet||0)*12+(animal1.inches||0) - (animal2.feet||0)*12+(animal2.inches||0);
-Animal.dietComperator = (animal1, animal2) => Animal.DIET_ENUM[animal1.diet.toLowerCase()] - Animal.DIET_ENUM[animal2.diet.toLowerCase()];

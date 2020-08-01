@@ -58,6 +58,9 @@ Human.prototype = Object.assign(Object.create(Animal.prototype), {
     },
     getImg: function() {
         return 'images/human.png';
+    },
+    getHeight: function() {
+        return `${this.feet || 0} feet, ${this.inches || 0} inches`;
     }
 });
 Human.prototype.constructor = Human;
@@ -73,6 +76,9 @@ Dino.prototype = Object.assign(Object.create(Animal.prototype), {
     getFact: function() {
         return this.fact;
     },
+    getHeight: function() {
+        return `${this.height} feet`;
+    }
 });
 Dino.prototype.constructor = Dino;
 
@@ -91,7 +97,7 @@ AnimalController.prototype = {
             <p>${this.model.getFact()}</p>
             <div class="overlay">
                 Weight: ${this.model.weight} lbs.<br>
-                Height: ${this.model.height} feet
+                Height: ${this.model.getHeight()}
             </div>
         `;
     }

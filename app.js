@@ -17,7 +17,7 @@ const Utilities = {
                 return;
             }
             wasCalled = true;
-            return fun.apply(optionalThis || null, args)
+            return fun.apply(optionalThis || null, args);
         }
     }
 }
@@ -25,7 +25,7 @@ const Utilities = {
 
 // Create Dino Constructor
 const Animal = function() {
-    this.onChangeCallbacks = []
+    this.onChangeCallbacks = [];
 }
 Animal.prototype = {
     getName: function() {

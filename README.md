@@ -1,5 +1,9 @@
 # Object Oriented Javascript 
 
+## To the Reviewer
+
+There is only one fact listed for every dinosaur(in dino.json) so I decided to skip the "random fact" part of assigment. If more facts were provided it would be trivial to add selection of one random fact within render function.
+
 ## Student Instructions
 
 ### Big Picture

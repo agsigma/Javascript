@@ -116,6 +116,28 @@ p {
     color: #fff;
 }
 
+
+#grid .grid-item:hover .overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 32px;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+#grid .grid-item .overlay {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    width: auto;
+    height: auto;
+    background: rgba(255,255,255,0.8);
+}
+
 /* Form Styles */
 .form-container {
     background: #eee;
@@ -171,4 +193,9 @@ select {
 .fine-print {
     display: block;
     font-size: 0.7em;
+}
+
+
+.hidden {
+    display: none;
 }

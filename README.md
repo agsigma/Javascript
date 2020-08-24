@@ -1,3 +1,3 @@
-# Object Oriented Javascript 
+## Object Oriented Javascript
 
-Simple app illustrating inheritance and OOP practices. Look at main.js if interested.
+Simple app illustrating inheritance and OOP practices. Look at app.js if interested.
